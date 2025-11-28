@@ -59,6 +59,32 @@ Note: Some packages may not have Python 3.13 wheels yet, causing installation to
 
 ---
 
+### Issue: `No matching distribution found for paddlepaddle==2.5.1`
+
+**Error Message:**
+```
+ERROR: Could not find a version that satisfies the requirement paddlepaddle==2.5.1
+ERROR: No matching distribution found for paddlepaddle==2.5.1
+```
+
+**Cause:** The specific version of PaddlePaddle in requirements.txt is no longer available on PyPI. Package versions get removed over time.
+
+**Solution:**
+
+```bash
+# The requirements.txt has been updated to use flexible versions
+pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+
+# Or install latest stable version directly
+pip install paddlepaddle>=2.6.2
+pip install paddleocr>=2.7.0
+```
+
+This will install the latest compatible version of PaddlePaddle (2.6.2 or newer).
+
+---
+
 ### Issue: `Cannot import 'setuptools.build_meta'`
 
 **Error Message:**

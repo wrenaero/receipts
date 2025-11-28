@@ -9,8 +9,8 @@ numpy==1.24.3
 Pillow==10.1.0
 
 # OCR (PaddleOCR - recommended)
-paddlepaddle==2.5.1
-paddleocr==2.7.0.3
+paddlepaddle>=2.6.2
+paddleocr>=2.7.0
 
 # Testing
 pytest==7.4.3
