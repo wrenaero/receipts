@@ -60,6 +60,10 @@ venv\Scripts\activate
 
 3. **Install dependencies:**
 ```bash
+# First, upgrade pip and setuptools
+pip install --upgrade pip setuptools wheel
+
+# Then install requirements
 pip install -r requirements.txt
 ```
 
@@ -71,6 +75,8 @@ This will install:
 - `pytest` - Testing framework
 
 **Installation time:** ~2-5 minutes depending on your internet connection.
+
+> **⚠️ Getting installation errors?** If you see `Cannot import 'setuptools.build_meta'` or similar errors, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for detailed solutions.
 
 ### Verify Installation
 
@@ -377,6 +383,23 @@ OCR_LANGUAGE=fr  # For French receipts
 ```
 
 ## 🔧 Troubleshooting
+
+> **📖 For comprehensive troubleshooting including setuptools errors, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)**
+
+### Common Issues
+
+### Issue: Cannot import 'setuptools.build_meta'
+
+**Quick Fix:**
+```bash
+# Upgrade pip, setuptools, and wheel first
+pip install --upgrade pip setuptools wheel
+
+# Then retry installation
+pip install -r requirements.txt
+```
+
+See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md#issue-cannot-import-setuptoolsbuild_meta) for detailed solutions.
 
 ### Issue: PaddleOCR Installation Fails
 
