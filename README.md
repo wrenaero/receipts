@@ -35,7 +35,7 @@ Skewed, with borders    Clean, deskewed
 
 ### Prerequisites
 
-- **Python 3.11 or higher**
+- **Python 3.11 or 3.12** (⚠️ Python 3.13 not yet supported - see [troubleshooting](./TROUBLESHOOTING.md#-issue-python-313-compatibility-critical))
 - **pip** (Python package manager)
 - **(Optional)** Virtual environment tool
 

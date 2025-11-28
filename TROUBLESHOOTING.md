@@ -2,6 +2,63 @@
 
 ## Common Installation Issues
 
+### ⚠️ Issue: Python 3.13 Compatibility (CRITICAL)
+
+**Error Message:**
+```
+AttributeError: module 'pkgutil' has no attribute 'ImpImporter'. Did you mean: 'zipimporter'?
+ERROR: Failed to build 'numpy' when getting requirements to build wheel
+```
+
+**Cause:** Python 3.13 removed `pkgutil.ImpImporter` which many packages still depend on. This project is designed for **Python 3.11 or 3.12**.
+
+**Solution: Use Python 3.11 or 3.12 (RECOMMENDED)**
+
+```bash
+# Check your current Python version
+python --version
+
+# If it shows 3.13.x, install Python 3.11 or 3.12 instead
+
+# On macOS with Homebrew:
+brew install python@3.11
+
+# On macOS with pyenv:
+pyenv install 3.11.9
+pyenv local 3.11.9
+
+# On Ubuntu/Debian:
+sudo apt-get install python3.11 python3.11-venv
+
+# On Windows:
+# Download Python 3.11 from python.org
+
+# Create virtual environment with Python 3.11
+python3.11 -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Verify version
+python --version  # Should show 3.11.x
+
+# Now install dependencies
+pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+```
+
+**Alternative: Force Python 3.13 (Not Recommended)**
+
+If you must use Python 3.13, try this workaround:
+
+```bash
+# Use only pre-built wheels (avoid compiling from source)
+pip install --upgrade pip setuptools>=70.0.0 wheel
+pip install --only-binary :all: -r requirements.txt
+```
+
+Note: Some packages may not have Python 3.13 wheels yet, causing installation to fail.
+
+---
+
 ### Issue: `Cannot import 'setuptools.build_meta'`
 
 **Error Message:**
