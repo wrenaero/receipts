@@ -450,6 +450,29 @@ Or add the project to PYTHONPATH:
 export PYTHONPATH=/path/to/receipts:$PYTHONPATH
 ```
 
+### Issue: Curl Upload Error - "Expected UploadFile, received: <class 'str'>"
+
+**Error Message:**
+```json
+{"detail":[{"type":"value_error","loc":["body","file"],
+"msg":"Value error, Expected UploadFile, received: <class 'str'>"}]}
+```
+
+**Cause:** Missing `@` symbol in curl command. The `@` tells curl to upload the file.
+
+**Solution:**
+```bash
+# ❌ Wrong - sends filename as string
+curl -X POST "http://localhost:8000/api/v1/scan" -F "file=./receipt.jpg"
+
+# ✅ Correct - uploads the file
+curl -X POST "http://localhost:8000/api/v1/scan" -F "file=@receipt.jpg"
+```
+
+Note the `@` symbol before the filename!
+
+---
+
 ### Issue: API Returns "Could not detect receipt"
 
 **Possible causes:**
