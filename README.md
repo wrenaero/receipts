@@ -2,10 +2,12 @@
 
 An intelligent receipt scanning application that automatically removes borders, fixes skewness, crops receipts, and extracts text using OCR.
 
-![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
+![Python](https://img.shields.io/badge/python-3.11%20|%203.12-blue.svg)
 ![Tests](https://img.shields.io/badge/tests-75%2F78%20passing-brightgreen.svg)
 ![Coverage](https://img.shields.io/badge/coverage-67%25-yellow.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
+> **⚠️ IMPORTANT:** This project requires **Python 3.11 or 3.12**. Python 3.13 is NOT yet supported due to dependency compatibility issues. See [installation instructions](#-quick-start) below.
 
 ## 🎯 What It Does
 
@@ -41,6 +43,8 @@ Skewed, with borders    Clean, deskewed
 
 ### Installation
 
+> **💡 TIP:** Make sure you have Python 3.11 or 3.12 installed. Check with `python --version` or `python3 --version`. If you have Python 3.13, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md#-issue-python-313-compatibility-critical) for installation instructions.
+
 1. **Clone the repository:**
 ```bash
 git clone <repository-url>
@@ -49,13 +53,16 @@ cd receipts
 
 2. **Create a virtual environment (recommended):**
 ```bash
-# On macOS/Linux
-python3 -m venv venv
+# On macOS/Linux (use python3.11 or python3.12 explicitly)
+python3.11 -m venv venv
 source venv/bin/activate
 
 # On Windows
 python -m venv venv
 venv\Scripts\activate
+
+# Verify Python version inside venv
+python --version  # Should show 3.11.x or 3.12.x
 ```
 
 3. **Install dependencies:**
