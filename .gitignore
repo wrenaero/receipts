@@ -52,6 +52,17 @@ models/yolo/*.pt
 logs/
 *.log
 
+# Test images and outputs
+test_receipt.jpg
+enhanced_test_receipt.jpg
+processed_test_receipt.jpg
+processed_enhanced_receipt.jpg
+receipt.jpg
+enhanced_receipt.jpg
+receipt_processed.jpg
+receipt_debug.jpg
+diagnostics/
+
 # Environment
 .env
 .env.local
