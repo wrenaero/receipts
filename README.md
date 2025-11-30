@@ -17,7 +17,9 @@ This application uses **OpenCV** and **PaddleOCR** to intelligently process rece
 ✅ **Fixes skewness** (automatically deskews rotated receipts)
 ✅ **Smart cropping** to receipt boundaries only
 ✅ **OCR text extraction** with structured data parsing
-✅ **REST API** for easy integration
+✅ **JSON data export** (merchant, items, totals, payment info)
+✅ **Multiple interfaces:** CLI tools, Python API, and REST API
+✅ **Flexible detection** for receipts on any background
 
 ### Before & After
 
@@ -131,6 +133,62 @@ if result['success']:
 else:
     print(f"❌ Error: {result['message']}")
 ```
+
+### Option 3: Simple CLI Tools (Recommended for Most Users)
+
+The easiest way to work with receipts is using the simple command-line tools:
+
+#### **scan_receipt.py** - Complete receipt processing
+```bash
+# Process receipt (crop, deskew, clean)
+python3 scan_receipt.py receipt.jpg output.jpg
+
+# Visualize detection for debugging
+python3 scan_receipt.py receipt.jpg debug.jpg --visualize
+
+# Extract text with OCR
+python3 scan_receipt.py receipt.jpg output.jpg --ocr
+
+# Adjust parameters for small receipts or complex edges
+python3 scan_receipt.py receipt.jpg output.jpg --min-area 0.01 --tolerance 0.05
+```
+
+#### **extract_receipt_data.py** - Extract data to JSON
+```bash
+# Extract structured data (works with any receipt image)
+python3 extract_receipt_data.py receipt.jpg receipt_data.json
+```
+
+**Output:**
+```json
+{
+  "merchant": "STORE NAME",
+  "date": "11/28/2025",
+  "time": "07:06 PM",
+  "items": [
+    {
+      "description": "Product Name",
+      "price": 25.99
+    }
+  ],
+  "subtotal": 25.99,
+  "tax": 2.08,
+  "total": 28.07,
+  "payment_method": "Visa"
+}
+```
+
+#### **simple_extract.py** - Deskew images
+```bash
+# Just correct skewness, then extract data
+python3 simple_extract.py receipt.jpg deskewed.jpg
+python3 extract_receipt_data.py deskewed.jpg data.json
+```
+
+**💡 When to use which tool:**
+- **`scan_receipt.py`**: Best for receipts on plain backgrounds, need cropping and cleaning
+- **`extract_receipt_data.py`**: Best for data extraction only, works on any background
+- **`simple_extract.py`**: Best when you just need to fix skew/rotation
 
 ## 📖 Usage Examples
 
@@ -287,8 +345,23 @@ If you see this error, your receipt likely has one of these issues:
 1. **Small in frame**: Receipt takes up less than 5% of the photo
 2. **Complex edges**: Receipt edges are jagged or text/graphics interfere with edge detection
 3. **Blurry or low contrast**: Edges aren't sharp enough
+4. **Complex background**: Receipt on textured surface (concrete, fabric, etc.)
 
-### Solution: Adjust Detection Parameters
+### Solution 1: Use Data Extraction Tool (Easiest)
+
+**For receipts on complex backgrounds or when you just need the data:**
+
+```bash
+# Extract data directly - works on any background
+python3 extract_receipt_data.py receipt.jpg receipt_data.json
+```
+
+This bypasses the contour detection and extracts text/data directly using OCR. Perfect for:
+- Receipts on textured surfaces (concrete, wood, fabric)
+- Receipts with complex backgrounds
+- When you only need the data, not a cleaned image
+
+### Solution 2: Adjust Detection Parameters
 
 Both the API and Python interface support two tunable parameters:
 
@@ -375,12 +448,14 @@ This will:
 
 ### Quick Reference
 
-| Issue | Parameter to Adjust | Recommended Value |
-|-------|-------------------|------------------|
-| Receipt too small in frame | `min_area_percent` | `0.01` - `0.001` |
-| Complex/jagged edges | `approx_tolerance` | `0.05` - `0.1` |
-| iPhone photo with small receipt | Both | `min_area_percent=0.01, approx_tolerance=0.05` |
-| Poor lighting/low contrast | N/A | Use `enhance_receipt.py` first |
+| Issue | Solution | Command/Value |
+|-------|----------|---------------|
+| Receipt too small in frame | Adjust `min_area_percent` | `0.01` - `0.001` |
+| Complex/jagged edges | Adjust `approx_tolerance` | `0.05` - `0.1` |
+| iPhone photo with small receipt | Adjust both parameters | `min_area_percent=0.01, approx_tolerance=0.05` |
+| Complex background (concrete, fabric) | **Use extraction tool** | `python3 extract_receipt_data.py receipt.jpg data.json` |
+| Just need data, not cleaned image | **Use extraction tool** | `python3 extract_receipt_data.py receipt.jpg data.json` |
+| Poor lighting/low contrast | Enhance first | `python3 enhance_receipt.py receipt.jpg enhanced.jpg` |
 
 ## 🧪 Testing
 
@@ -440,10 +515,17 @@ receipts/
 ├── tests/                        # Test suite (78 tests)
 │   ├── conftest.py              # Shared test fixtures
 │   └── unit/                    # Unit tests
+├── scan_receipt.py              # CLI: Complete processing (RECOMMENDED)
+├── extract_receipt_data.py      # CLI: Extract data to JSON (RECOMMENDED)
+├── simple_extract.py            # CLI: Deskew images
+├── diagnose_receipt.py          # CLI: Debug detection issues
+├── enhance_receipt.py           # CLI: Enhance image quality
+├── create_test_receipt.py       # CLI: Generate test receipts
+├── process_small_receipt.py     # CLI: Process small receipts
 ├── requirements.txt             # Python dependencies
 ├── pytest.ini                   # Test configuration
 ├── .gitignore                   # Git exclusions
-├── README.md                    # This file
+├── README.md                    # This file (user guide)
 ├── DEV_README.md               # Developer guide
 ├── RECEIPT_SCANNING.md         # Technical implementation
 ├── IMPLEMENTATION_SUMMARY.md   # Implementation details
