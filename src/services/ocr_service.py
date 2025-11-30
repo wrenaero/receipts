@@ -65,8 +65,8 @@ class OCRService:
             image = str(image)
 
         try:
-            # Perform OCR
-            result = self._ocr_engine.ocr(image, cls=self.use_angle_cls)
+            # Perform OCR (use_angle_cls is set during initialization)
+            result = self._ocr_engine.ocr(image)
 
             if result is None or len(result) == 0 or result[0] is None:
                 return []
