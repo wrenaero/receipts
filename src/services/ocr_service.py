@@ -74,17 +74,38 @@ class OCRService:
             # Extract text and optionally confidence
             text_results = []
             for line in result[0]:
-                text = line[1][0]  # Text content
-                confidence = line[1][1]  # Confidence score
+                # Handle different result formats
+                if not line or len(line) < 2:
+                    continue
 
-                if return_confidence:
-                    text_results.append({
-                        'text': text,
-                        'confidence': confidence,
-                        'bbox': line[0]  # Bounding box coordinates
-                    })
-                else:
-                    text_results.append(text)
+                try:
+                    # Standard format: [bbox, (text, confidence)]
+                    if isinstance(line[1], tuple) and len(line[1]) >= 2:
+                        text = line[1][0]
+                        confidence = line[1][1]
+                    # Alternative format: [bbox, [text, confidence]]
+                    elif isinstance(line[1], list) and len(line[1]) >= 2:
+                        text = line[1][0]
+                        confidence = line[1][1]
+                    else:
+                        # Fallback - just get the text
+                        text = str(line[1]) if line[1] else ""
+                        confidence = 0.0
+
+                    if not text or not isinstance(text, str):
+                        continue
+
+                    if return_confidence:
+                        text_results.append({
+                            'text': text,
+                            'confidence': float(confidence) if confidence else 0.0,
+                            'bbox': line[0] if line[0] else []
+                        })
+                    else:
+                        text_results.append(text)
+                except (IndexError, TypeError, ValueError) as parse_error:
+                    # Skip lines that can't be parsed
+                    continue
 
             return text_results
 
