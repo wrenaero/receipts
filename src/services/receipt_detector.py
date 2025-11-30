@@ -7,7 +7,11 @@ from typing import Optional, Tuple
 from src.utils.image_utils import order_points
 
 
-def find_receipt_contour(edged_image: np.ndarray) -> Optional[np.ndarray]:
+def find_receipt_contour(
+    edged_image: np.ndarray,
+    min_area_percent: float = 5.0,
+    approx_tolerance: float = 0.02
+) -> Optional[np.ndarray]:
     """
     Find the largest rectangular contour in an edge-detected image.
 
@@ -16,6 +20,9 @@ def find_receipt_contour(edged_image: np.ndarray) -> Optional[np.ndarray]:
 
     Args:
         edged_image: Edge-detected binary image
+        min_area_percent: Minimum area as percentage of total image (default 5.0%)
+        approx_tolerance: Tolerance for contour approximation (default 0.02)
+                         Lower values = more strict, higher = more lenient
 
     Returns:
         numpy.ndarray or None: Array of 4 corner points if found, None otherwise
@@ -40,22 +47,24 @@ def find_receipt_contour(edged_image: np.ndarray) -> Optional[np.ndarray]:
     # Sort contours by area (largest first)
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
 
+    image_area = edged_image.shape[0] * edged_image.shape[1]
+    min_area = image_area * (min_area_percent / 100)
+
     # Look for a 4-sided contour (receipt should be rectangular)
     for contour in contours[:10]:  # Check top 10 largest contours
         # Calculate perimeter
         peri = cv2.arcLength(contour, True)
 
         # Approximate the contour
-        approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
+        approx = cv2.approxPolyDP(contour, approx_tolerance * peri, True)
 
         # Receipt should have 4 corners
         if len(approx) == 4:
             # Additional validation: check if contour is large enough
             area = cv2.contourArea(approx)
-            image_area = edged_image.shape[0] * edged_image.shape[1]
 
-            # Receipt should be at least 5% of image area
-            if area > image_area * 0.05:
+            # Receipt should be at least min_area_percent of image area
+            if area > min_area:
                 return approx
 
     return None
@@ -171,7 +180,9 @@ def remove_background(image: np.ndarray) -> np.ndarray:
 def detect_and_extract_receipt(
     image: np.ndarray,
     edged_image: np.ndarray,
-    apply_background_removal: bool = True
+    apply_background_removal: bool = True,
+    min_area_percent: float = 5.0,
+    approx_tolerance: float = 0.02
 ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
     """
     Detect receipt in image and extract it with perspective correction.
@@ -180,6 +191,8 @@ def detect_and_extract_receipt(
         image: Original color image
         edged_image: Edge-detected version of the image
         apply_background_removal: Whether to apply background removal
+        min_area_percent: Minimum receipt area as percentage of image (default 5.0%)
+        approx_tolerance: Tolerance for contour approximation (default 0.02)
 
     Returns:
         Tuple of (warped_image, contour):
@@ -187,7 +200,7 @@ def detect_and_extract_receipt(
             - contour: The detected receipt contour (or None if not found)
     """
     # Find receipt contour
-    contour = find_receipt_contour(edged_image)
+    contour = find_receipt_contour(edged_image, min_area_percent, approx_tolerance)
 
     if contour is None:
         return None, None

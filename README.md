@@ -279,6 +279,109 @@ for receipt_path in receipt_dir.glob("*.jpg"):
         print(f"❌ {receipt_path.name}: {result['message']}")
 ```
 
+## 🔍 Handling Small Receipts or Complex Edges
+
+### Problem: "Could not detect receipt in image"
+
+If you see this error, your receipt likely has one of these issues:
+1. **Small in frame**: Receipt takes up less than 5% of the photo
+2. **Complex edges**: Receipt edges are jagged or text/graphics interfere with edge detection
+3. **Blurry or low contrast**: Edges aren't sharp enough
+
+### Solution: Adjust Detection Parameters
+
+Both the API and Python interface support two tunable parameters:
+
+- **`min_area_percent`** (default: 5.0): Minimum receipt area as percentage of image
+  - Use `0.01` for receipts that are small in the frame
+  - Use `0.001` for very small receipts
+
+- **`approx_tolerance`** (default: 0.02): How strict the contour approximation is
+  - Use `0.05` for receipts with complex/jagged edges
+  - Use `0.1` for very complex backgrounds
+
+### API Examples
+
+```bash
+# Small receipt in large photo
+curl -X POST "http://localhost:8000/api/v1/scan?min_area_percent=0.01" \
+  -F "file=@receipt.jpg"
+
+# Receipt with complex edges (common with printed text near borders)
+curl -X POST "http://localhost:8000/api/v1/scan?approx_tolerance=0.05" \
+  -F "file=@receipt.jpg"
+
+# Both issues combined
+curl -X POST "http://localhost:8000/api/v1/scan?min_area_percent=0.01&approx_tolerance=0.05" \
+  -F "file=@receipt.jpg"
+
+# Visualize to see what's being detected
+curl -X POST "http://localhost:8000/api/v1/visualize?min_area_percent=0.01&approx_tolerance=0.05" \
+  -F "file=@receipt.jpg" \
+  --output debug.jpg
+```
+
+### Python Examples
+
+```python
+from src.services.image_processor import ReceiptProcessor
+
+processor = ReceiptProcessor()
+
+# Small receipt
+result = processor.process_receipt(
+    "receipt.jpg",
+    "output.jpg",
+    min_area_percent=0.01
+)
+
+# Complex edges
+result = processor.process_receipt(
+    "receipt.jpg",
+    "output.jpg",
+    approx_tolerance=0.05
+)
+
+# Both parameters
+result = processor.process_receipt(
+    "receipt.jpg",
+    "output.jpg",
+    min_area_percent=0.01,
+    approx_tolerance=0.05
+)
+
+# Visualize for debugging
+vis = processor.visualize_detection(
+    "receipt.jpg",
+    "debug.jpg",
+    min_area_percent=0.01,
+    approx_tolerance=0.05
+)
+```
+
+### Diagnostic Tool
+
+Use the diagnostic script to analyze why a receipt isn't detecting:
+
+```bash
+python diagnose_receipt.py receipt.jpg
+```
+
+This will:
+- Analyze image quality (brightness, contrast, edges)
+- Show which contours were detected and why they were rejected
+- Provide specific recommendations with exact parameter values
+- Generate diagnostic images showing edges and contours
+
+### Quick Reference
+
+| Issue | Parameter to Adjust | Recommended Value |
+|-------|-------------------|------------------|
+| Receipt too small in frame | `min_area_percent` | `0.01` - `0.001` |
+| Complex/jagged edges | `approx_tolerance` | `0.05` - `0.1` |
+| iPhone photo with small receipt | Both | `min_area_percent=0.01, approx_tolerance=0.05` |
+| Poor lighting/low contrast | N/A | Use `enhance_receipt.py` first |
+
 ## 🧪 Testing
 
 ### Run All Tests

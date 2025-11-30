@@ -29,7 +29,9 @@ class ReceiptProcessor:
         self,
         image_path: Union[str, Path, np.ndarray],
         output_path: Optional[Union[str, Path]] = None,
-        return_steps: bool = False
+        return_steps: bool = False,
+        min_area_percent: float = 5.0,
+        approx_tolerance: float = 0.02
     ) -> Dict[str, Any]:
         """
         Complete receipt processing pipeline.
@@ -46,6 +48,8 @@ class ReceiptProcessor:
             image_path: Path to image file or numpy array
             output_path: Optional path to save processed image
             return_steps: If True, return intermediate processing steps
+            min_area_percent: Minimum receipt area as % of image (default 5.0%, use 0.01 for small receipts)
+            approx_tolerance: Tolerance for contour approximation (default 0.02, increase for complex edges)
 
         Returns:
             Dict containing:
@@ -60,6 +64,9 @@ class ReceiptProcessor:
             >>> result = processor.process_receipt("receipt.jpg", "output.jpg")
             >>> if result['success']:
             >>>     print("Receipt processed successfully!")
+            >>>
+            >>> # For small receipts in large photos:
+            >>> result = processor.process_receipt("receipt.jpg", "output.jpg", min_area_percent=0.01)
         """
         steps = {} if return_steps else None
 
@@ -86,14 +93,14 @@ class ReceiptProcessor:
                 steps['edges'] = edges.copy()
 
             # Step 4: Find receipt contour
-            contour = find_receipt_contour(edges)
+            contour = find_receipt_contour(edges, min_area_percent, approx_tolerance)
 
             if contour is None:
                 return {
                     'success': False,
                     'processed_image': None,
                     'contour': None,
-                    'message': 'Could not detect receipt in image',
+                    'message': 'Could not detect receipt in image. Try min_area_percent=0.01 for small receipts.',
                     'steps': steps
                 }
 
@@ -163,7 +170,9 @@ class ReceiptProcessor:
     def visualize_detection(
         self,
         image_path: Union[str, Path, np.ndarray],
-        output_path: Optional[Union[str, Path]] = None
+        output_path: Optional[Union[str, Path]] = None,
+        min_area_percent: float = 5.0,
+        approx_tolerance: float = 0.02
     ) -> Optional[np.ndarray]:
         """
         Visualize the receipt detection by drawing the detected contour.
@@ -171,6 +180,8 @@ class ReceiptProcessor:
         Args:
             image_path: Path to image file or numpy array
             output_path: Optional path to save visualization
+            min_area_percent: Minimum receipt area as % of image (default 5.0%)
+            approx_tolerance: Tolerance for contour approximation (default 0.02)
 
         Returns:
             Image with contour drawn, or None if detection failed
@@ -185,7 +196,7 @@ class ReceiptProcessor:
             # Process to get contour
             preprocessed = preprocess_image(original)
             edges = detect_edges(preprocessed)
-            contour = find_receipt_contour(edges)
+            contour = find_receipt_contour(edges, min_area_percent, approx_tolerance)
 
             if contour is None:
                 return None

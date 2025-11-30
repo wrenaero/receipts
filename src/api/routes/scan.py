@@ -20,7 +20,9 @@ router = APIRouter()
 async def scan_receipt(
     file: UploadFile = File(...),
     extract_text: bool = Query(False, description="Extract text using OCR"),
-    return_image: bool = Query(False, description="Return processed image as base64")
+    return_image: bool = Query(False, description="Return processed image as base64"),
+    min_area_percent: float = Query(5.0, description="Minimum receipt area as % of image (use 0.01 for small receipts)"),
+    approx_tolerance: float = Query(0.02, description="Contour approximation tolerance (increase for complex edges)")
 ):
     """
     Scan and process a receipt image.
@@ -35,13 +37,20 @@ async def scan_receipt(
         file: Receipt image file (JPEG, PNG)
         extract_text: Whether to extract text using OCR
         return_image: Whether to return processed image as base64
+        min_area_percent: Minimum receipt area (default 5.0%, use 0.01 for small receipts)
+        approx_tolerance: Contour approximation (default 0.02, higher = more lenient)
 
     Returns:
         JSON with processing results
 
     Example:
         ```bash
+        # Standard processing
         curl -X POST "http://localhost:8000/api/v1/scan?extract_text=true" \\
+             -F "file=@receipt.jpg"
+
+        # For small receipts in large photos
+        curl -X POST "http://localhost:8000/api/v1/scan?min_area_percent=0.01" \\
              -F "file=@receipt.jpg"
         ```
     """
@@ -75,7 +84,11 @@ async def scan_receipt(
 
         # Process receipt
         processor = ReceiptProcessor()
-        result = processor.process_receipt(image)
+        result = processor.process_receipt(
+            image,
+            min_area_percent=min_area_percent,
+            approx_tolerance=approx_tolerance
+        )
 
         if not result['success']:
             return JSONResponse(
@@ -123,7 +136,9 @@ async def scan_receipt(
 @router.post("/scan/save")
 async def scan_and_save_receipt(
     file: UploadFile = File(...),
-    extract_text: bool = Query(False, description="Extract text using OCR")
+    extract_text: bool = Query(False, description="Extract text using OCR"),
+    min_area_percent: float = Query(5.0, description="Minimum receipt area as % of image (use 0.01 for small receipts)"),
+    approx_tolerance: float = Query(0.02, description="Contour approximation tolerance")
 ):
     """
     Scan receipt and save processed image.
@@ -133,6 +148,8 @@ async def scan_and_save_receipt(
     Args:
         file: Receipt image file
         extract_text: Whether to extract text using OCR
+        min_area_percent: Minimum receipt area (default 5.0%, use 0.01 for small receipts)
+        approx_tolerance: Contour approximation (default 0.02)
 
     Returns:
         Processed image file or JSON with OCR results
@@ -163,7 +180,12 @@ async def scan_and_save_receipt(
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp_file:
             output_path = tmp_file.name
 
-        result = processor.process_receipt(image, output_path=output_path)
+        result = processor.process_receipt(
+            image,
+            output_path=output_path,
+            min_area_percent=min_area_percent,
+            approx_tolerance=approx_tolerance
+        )
 
         if not result['success']:
             Path(output_path).unlink(missing_ok=True)
@@ -212,7 +234,9 @@ async def scan_and_save_receipt(
 
 @router.post("/visualize")
 async def visualize_detection(
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    min_area_percent: float = Query(5.0, description="Minimum receipt area as % of image (use 0.01 for small receipts)"),
+    approx_tolerance: float = Query(0.02, description="Contour approximation tolerance")
 ):
     """
     Visualize receipt detection.
@@ -221,6 +245,8 @@ async def visualize_detection(
 
     Args:
         file: Receipt image file
+        min_area_percent: Minimum receipt area (default 5.0%, use 0.01 for small receipts)
+        approx_tolerance: Contour approximation (default 0.02)
 
     Returns:
         Image with detection visualization
@@ -250,13 +276,18 @@ async def visualize_detection(
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp_file:
             output_path = tmp_file.name
 
-        vis_image = processor.visualize_detection(image, output_path)
+        vis_image = processor.visualize_detection(
+            image,
+            output_path,
+            min_area_percent=min_area_percent,
+            approx_tolerance=approx_tolerance
+        )
 
         if vis_image is None:
             Path(output_path).unlink(missing_ok=True)
             raise HTTPException(
                 status_code=400,
-                detail="Could not detect receipt in image"
+                detail="Could not detect receipt in image. Try min_area_percent=0.01 for small receipts."
             )
 
         return FileResponse(
