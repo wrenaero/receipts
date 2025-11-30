@@ -348,24 +348,35 @@ async def extract_receipt_data(
 
         # Extract data with OCR
         try:
-            ocr = OCRService()
-            data = ocr.extract_structured_data(image)
+            # Save image to temp file for PaddleOCR
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp:
+                cv2.imwrite(tmp.name, image)
+                temp_path = tmp.name
 
-            # Add metadata
-            data['_metadata'] = {
-                'filename': file.filename,
-                'image_size': f"{image.shape[1]}x{image.shape[0]}"
-            }
+            try:
+                ocr = OCRService()
+                data = ocr.extract_structured_data(temp_path)
 
-            return JSONResponse(
-                status_code=200,
-                content=data
-            )
+                # Add metadata
+                data['_metadata'] = {
+                    'filename': file.filename,
+                    'image_size': f"{image.shape[1]}x{image.shape[0]}"
+                }
+
+                return JSONResponse(
+                    status_code=200,
+                    content=data
+                )
+            finally:
+                # Clean up temp file
+                Path(temp_path).unlink(missing_ok=True)
 
         except Exception as ocr_error:
+            import traceback
+            error_details = traceback.format_exc()
             raise HTTPException(
                 status_code=500,
-                detail=f"OCR extraction failed: {str(ocr_error)}"
+                detail=f"OCR extraction failed: {str(ocr_error)}\nDetails: {error_details}"
             )
 
     except HTTPException:
