@@ -59,6 +59,7 @@ processed_test_receipt.jpg
 processed_enhanced_receipt.jpg
 receipt.jpg
 enhanced_receipt.jpg
+enhanced_receipt_v2.jpg
 receipt_processed.jpg
 receipt_debug.jpg
 receipt_visualization.jpg
@@ -68,6 +69,10 @@ my_processed_receipt.jpg
 my_visualization.jpg
 processed_*.jpg
 visualization_*.jpg
+enhanced_*.jpg
+debug_*.jpg
+fixed_*.jpg
+better_*.jpg
 *_ocr.json
 diagnostics/
 
