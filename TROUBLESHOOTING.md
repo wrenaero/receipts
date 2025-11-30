@@ -313,6 +313,54 @@ This will give you all image processing features (cropping, deskewing, backgroun
 
 ---
 
+## Runtime Issues
+
+### Issue: Curl File Upload Error
+
+**Error Message:**
+```json
+{"detail":[{"type":"value_error","loc":["body","file"],
+"msg":"Value error, Expected UploadFile, received: <class 'str'>"}]}
+```
+
+**Cause:** Missing `@` symbol in curl command. Without the `@`, curl sends the filename as a string instead of uploading the file.
+
+**Solution:**
+```bash
+# ❌ Wrong - sends filename as string
+curl -X POST "http://localhost:8000/api/v1/scan" -F "file=./receipt.jpg"
+
+# ✅ Correct - uploads the actual file
+curl -X POST "http://localhost:8000/api/v1/scan" -F "file=@receipt.jpg"
+```
+
+**Key Points:**
+- The `@` symbol tells curl to read and upload the file
+- Works with relative paths: `-F "file=@./receipt.jpg"`
+- Works with absolute paths: `-F "file=@/full/path/to/receipt.jpg"`
+- The filename must exist and be readable
+
+**Alternative Testing Methods:**
+
+Using Python:
+```python
+import requests
+
+url = "http://localhost:8000/api/v1/scan"
+files = {"file": open("receipt.jpg", "rb")}
+response = requests.post(url, files=files)
+print(response.json())
+```
+
+Using the interactive API docs:
+1. Visit http://localhost:8000/docs
+2. Click on the `/api/v1/scan` endpoint
+3. Click "Try it out"
+4. Upload your file using the file picker
+5. Click "Execute"
+
+---
+
 ## Still Having Issues?
 
 1. **Check your Python version:**
