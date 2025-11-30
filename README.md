@@ -192,7 +192,43 @@ python3 extract_receipt_data.py deskewed.jpg data.json
 
 ## 📖 Usage Examples
 
-### 1. Process Receipt via API
+### 1. Extract Receipt Data to JSON (Simplest)
+
+```bash
+# Extract structured data - works on any background
+curl -X POST "http://localhost:8000/api/v1/extract" \
+  -F "file=@receipt.jpg"
+```
+
+**Response:**
+```json
+{
+  "merchant": "BROWNS SHOE FIT",
+  "date": "11/28/2025",
+  "time": "07:06 PM",
+  "transaction_id": "30280425395",
+  "items": [
+    {
+      "description": "Glycerin GTS 22",
+      "price": 132.00
+    },
+    {
+      "description": "Bondi 9",
+      "price": 140.00
+    }
+  ],
+  "subtotal": 272.00,
+  "sales_tax": 19.04,
+  "total": 291.04,
+  "payment_method": "Visa",
+  "_metadata": {
+    "filename": "receipt.jpg",
+    "image_size": "3024x4032"
+  }
+}
+```
+
+### 2. Process Receipt with Cropping/Cleaning
 
 ```bash
 # Basic processing (crop, deskew, remove background)
@@ -209,7 +245,7 @@ curl -X POST "http://localhost:8000/api/v1/scan" \
 }
 ```
 
-### 2. Process with OCR Text Extraction
+### 3. Process with OCR Text Extraction
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/scan?extract_text=true" \
@@ -235,7 +271,7 @@ curl -X POST "http://localhost:8000/api/v1/scan?extract_text=true" \
 }
 ```
 
-### 3. Download Processed Image
+### 4. Download Processed Image
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/scan/save" \
@@ -243,7 +279,7 @@ curl -X POST "http://localhost:8000/api/v1/scan/save" \
   --output processed_receipt.jpg
 ```
 
-### 4. Visualize Detection (for debugging)
+### 5. Visualize Detection (for debugging)
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/visualize" \
@@ -253,7 +289,7 @@ curl -X POST "http://localhost:8000/api/v1/visualize" \
 
 This shows the detected receipt boundaries and corner points on the original image.
 
-### 5. Python Code Examples
+### 6. Python Code Examples
 
 #### Basic Processing
 

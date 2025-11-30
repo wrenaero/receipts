@@ -305,6 +305,78 @@ async def visualize_detection(
         )
 
 
+@router.post("/extract")
+async def extract_receipt_data(
+    file: UploadFile = File(...)
+):
+    """
+    Extract structured data from receipt image to JSON.
+
+    Works with any receipt image - no perfect detection needed.
+    Returns merchant, date, items, totals, payment info as JSON.
+
+    Args:
+        file: Receipt image file
+
+    Returns:
+        JSON with structured receipt data
+
+    Example:
+        ```bash
+        curl -X POST "http://localhost:8000/api/v1/extract" \\
+             -F "file=@receipt.jpg"
+        ```
+    """
+    # Validate file type
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail="File must be an image"
+        )
+
+    try:
+        # Read uploaded file
+        contents = await file.read()
+        nparr = np.frombuffer(contents, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        if image is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid image file"
+            )
+
+        # Extract data with OCR
+        try:
+            ocr = OCRService()
+            data = ocr.extract_structured_data(image)
+
+            # Add metadata
+            data['_metadata'] = {
+                'filename': file.filename,
+                'image_size': f"{image.shape[1]}x{image.shape[0]}"
+            }
+
+            return JSONResponse(
+                status_code=200,
+                content=data
+            )
+
+        except Exception as ocr_error:
+            raise HTTPException(
+                status_code=500,
+                detail=f"OCR extraction failed: {str(ocr_error)}"
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing receipt: {str(e)}"
+        )
+
+
 @router.get("/test")
 async def test_endpoint():
     """Test endpoint to verify API is working."""
@@ -314,6 +386,7 @@ async def test_endpoint():
         "endpoints": {
             "scan": "/api/v1/scan",
             "scan_and_save": "/api/v1/scan/save",
-            "visualize": "/api/v1/visualize"
+            "visualize": "/api/v1/visualize",
+            "extract": "/api/v1/extract"
         }
     }
