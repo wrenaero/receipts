@@ -67,13 +67,16 @@ visualization.jpg
 direct_test_output.jpg
 my_processed_receipt.jpg
 my_visualization.jpg
+deskewed_receipt.jpg
 processed_*.jpg
 visualization_*.jpg
 enhanced_*.jpg
 debug_*.jpg
 fixed_*.jpg
 better_*.jpg
+deskewed_*.jpg
 *_ocr.json
+*_data.json
 diagnostics/
 
 # Environment

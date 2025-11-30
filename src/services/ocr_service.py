@@ -29,8 +29,7 @@ class OCRService:
                 from paddleocr import PaddleOCR
                 self._ocr_engine = PaddleOCR(
                     use_angle_cls=self.use_angle_cls,
-                    lang=self.language,
-                    show_log=False
+                    lang=self.language
                 )
             except ImportError:
                 raise ImportError(
